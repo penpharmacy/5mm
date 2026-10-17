@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8">
@@ -35,20 +35,24 @@
 
       <!-- User Status & Menu -->
       <div id="navMenu" class="hidden items-center flex-wrap gap-2">
-        <span id="cloudStatusBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-indigo-950/80 text-emerald-300 border border-indigo-700 flex items-center gap-1">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> ซิงค์ข้อมูลออนไลน์แล้ว
-        </span>
+        <div id="cloudStatusBadge" class="text-[11px] px-2.5 py-1 rounded-full bg-indigo-950/90 text-emerald-300 border border-indigo-700 flex items-center gap-1.5 shadow-sm">
+          <span id="cloudDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="cloudStatusText">ซิงค์คลาวด์ออนไลน์แล้ว</span>
+        </div>
         <button onclick="showView('dashboard')" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-800 hover:bg-indigo-700 transition">
-          📋 รายการข้อสอบ
+          📋 หน้าหลักข้อสอบ
         </button>
         <button onclick="showView('myCerts')" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-800 hover:bg-indigo-700 transition">
-          🎓 ประวัติผลสอบ & ใบประกาศฯ
+          🎓 ใบประกาศนียบัตรที่ได้รับ
         </button>
         <button id="btnAdminCreate" onclick="openExamEditor()" class="hidden px-3 py-1.5 rounded-lg text-sm font-medium bg-amber-500 text-indigo-950 hover:bg-amber-400 transition font-semibold">
           + สร้างข้อสอบใหม่
         </button>
         <button id="btnAdminCert" onclick="showView('certDesigner')" class="hidden px-3 py-1.5 rounded-lg text-sm font-medium bg-emerald-600 hover:bg-emerald-500 transition">
           🎨 ออกแบบใบประกาศฯ
+        </button>
+        <button id="btnAdminCloud" onclick="openCloudModal()" class="hidden px-3 py-1.5 rounded-lg text-sm font-medium bg-sky-600 hover:bg-sky-500 text-white transition">
+          🗄️ ฐานข้อมูลเบื้องหลัง (Admin)
         </button>
         <div class="h-5 w-px bg-indigo-700 mx-1"></div>
         <span id="userBadge" class="text-xs px-2.5 py-1 rounded-full bg-indigo-950 text-amber-300 border border-indigo-700"></span>
@@ -106,6 +110,9 @@
 
           <div class="text-center text-xs text-slate-500 pt-1">
             ยังไม่มีบัญชีผู้ใช้? <button onclick="switchAuthTab('register')" class="text-indigo-600 font-bold hover:underline">คลิกที่นี่เพื่อลงทะเบียน</button>
+          </div>
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-center text-[11px] text-slate-400">
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> ระบบบันทึกผลสอบและใบประกาศนียบัตรออนไลน์อัตโนมัติ</span>
           </div>
         </div>
 
@@ -204,8 +211,49 @@
         </div>
       </div>
 
-      <!-- Exam Cards Grid -->
-      <div id="examGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+      <!-- Admin Exam Cards Grid (Shown only to Admin) -->
+      <div id="adminExamSection" class="hidden space-y-4">
+        <div id="examGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+      </div>
+
+      <!-- Student Structured View (Shown only to Non-Admin Users) -->
+      <div id="studentDashboardSections" class="hidden space-y-8">
+        <!-- 1. ข้อสอบใหม่ที่ได้รับ -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <h3 class="text-base font-bold text-indigo-950 flex items-center gap-2">
+              <span class="bg-indigo-600 text-white text-xs px-2.5 py-1 rounded-lg">1</span>
+              🆕 ข้อสอบใหม่ที่ได้รับ (ยังไม่ได้เข้าทำ)
+            </h3>
+            <span id="countNewExams" class="text-xs font-semibold text-slate-500"></span>
+          </div>
+          <div id="studentNewExamsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+        </div>
+
+        <!-- 2. หัวข้อข้อสอบที่ทำไว้ -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <h3 class="text-base font-bold text-indigo-950 flex items-center gap-2">
+              <span class="bg-amber-500 text-indigo-950 text-xs px-2.5 py-1 rounded-lg font-extrabold">2</span>
+              📝 หัวข้อข้อสอบที่ทำไว้แล้ว
+            </h3>
+            <span id="countDoneExams" class="text-xs font-semibold text-slate-500"></span>
+          </div>
+          <div id="studentDoneExamsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+        </div>
+
+        <!-- 3. ประกาศนียบัตรที่ได้รับ -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <h3 class="text-base font-bold text-indigo-950 flex items-center gap-2">
+              <span class="bg-emerald-600 text-white text-xs px-2.5 py-1 rounded-lg">3</span>
+              🎓 ประกาศนียบัตรที่ได้รับ
+            </h3>
+            <button onclick="showView('myCerts')" class="text-xs font-bold text-indigo-600 hover:underline">ดูทั้งหมด →</button>
+          </div>
+          <div id="studentEarnedCertsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+      </div>
     </section>
 
     <!-- ================= 3. ADMIN: EXAM EDITOR VIEW ================= -->
@@ -442,15 +490,111 @@
           <h2 id="myCertsTitle" class="text-xl font-bold text-slate-800">🎓 ประวัติการสอบและใบประกาศนียบัตร</h2>
           <p class="text-sm text-slate-500">ข้อมูลถูกบันทึกไว้บนระบบคลาวด์ สามารถเข้าสู่ระบบจากเครื่องใดก็ได้เพื่อดูผลสอบและดาวน์โหลดใบประกาศนียบัตรย้อนหลัง</p>
         </div>
-        <button onclick="showView('dashboard')" class="px-4 py-2 rounded-lg border text-sm font-medium hover:bg-slate-50 shrink-0">
-          ← กลับหน้ารายการข้อสอบ
-        </button>
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+          <button onclick="forceCloudPull()" class="px-3.5 py-2 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-xs font-bold transition">
+            🔄 ดึงข้อมูลล่าสุดจากคลาวด์
+          </button>
+          <button onclick="showView('dashboard')" class="px-4 py-2 rounded-lg border text-sm font-medium hover:bg-slate-50">
+            ← กลับหน้ารายการข้อสอบ
+          </button>
+        </div>
+      </div>
+
+      <!-- Search & Filter Bar for Certificates -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div class="w-full sm:w-80">
+          <input id="certSearchInput" type="text" oninput="renderMyCerts()" placeholder="🔍 ค้นหาชื่อวิชา, ชื่อผู้สอบ หรือรหัสใบประกาศฯ..." class="w-full px-3.5 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div id="certSummaryStats" class="text-xs font-semibold text-slate-600"></div>
       </div>
 
       <div id="myCertsList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </section>
 
   </main>
+
+  <!-- ================= CLOUD SYNC & CROSS-DEVICE BACKUP MODAL ================= -->
+  <div id="cloudModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full p-6 space-y-4 shadow-2xl max-h-[92vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3">
+        <div>
+          <h3 class="font-bold text-lg text-indigo-950">☁️ ระบบฐานข้อมูลคลาวด์ & ตัวตรวจสอบข้อมูล (Database Inspector)</h3>
+          <p class="text-xs text-slate-500">ตรวจสอบแหล่งที่เก็บข้อมูล ดูตารางข้อมูลจริง และจัดการการซิงค์ข้ามอุปกรณ์</p>
+        </div>
+        <button onclick="closeCloudModal()" class="text-slate-400 hover:text-slate-700 text-lg">✕</button>
+      </div>
+
+      <!-- Where is data stored explanation -->
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-xs text-amber-900 space-y-1.5">
+        <div class="font-bold text-sm flex items-center gap-1.5">📍 ฐานข้อมูลถูกเก็บไว้ที่ไหน?</div>
+        <p>1. <strong>Google Cloud Firestore (ฐานข้อมูลหลักออนไลน์):</strong> เก็บแยกเป็น 4 ตารางหลัก ได้แก่ บัญชีผู้ใช้ (<code>ce_users</code>), ชุดข้อสอบ (<code>ce_exams</code>), รูปแบบใบประกาศฯ (<code>ce_settings</code>) และประวัติผลสอบ (<code>ce_submissions</code>) ซิงค์อัตโนมัติแบบเรียลไทม์</p>
+        <p>2. <strong>ไฟล์สำรอง JSON (กรณีนำโค้ดไปรันบนเซิร์ฟเวอร์ส่วนตัว):</strong> สามารถกดดาวน์โหลดเป็นไฟล์ <code>.json</code> เพื่อเปิดดูด้วยโปรแกรม Notepad/VS Code หรือนำไปอัปโหลดเข้าเครื่องอื่นได้ทันที</p>
+      </div>
+
+      <!-- Live Cloud Statistics -->
+      <div class="bg-indigo-950 text-white p-4 rounded-xl space-y-3">
+        <div class="flex flex-wrap justify-between items-center gap-2">
+          <span class="text-xs font-semibold text-indigo-200">สถานะการเชื่อมต่อฐานข้อมูลคลาวด์:</span>
+          <span id="modalCloudState" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">🟢 ซิงค์ข้อมูลแบบเรียลไทม์</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center pt-1">
+          <div onclick="switchDbTab('users')" class="bg-indigo-900/80 hover:bg-indigo-800 p-2.5 rounded-lg border border-indigo-800 cursor-pointer transition">
+            <div id="statUsersCount" class="text-lg font-extrabold text-amber-400">0</div>
+            <div class="text-[11px] text-indigo-200">👤 บัญชีผู้ใช้งาน (คลิกดู)</div>
+          </div>
+          <div onclick="switchDbTab('exams')" class="bg-indigo-900/80 hover:bg-indigo-800 p-2.5 rounded-lg border border-indigo-800 cursor-pointer transition">
+            <div id="statExamsCount" class="text-lg font-extrabold text-emerald-400">0</div>
+            <div class="text-[11px] text-indigo-200">📋 ชุดข้อสอบ (คลิกดู)</div>
+          </div>
+          <div onclick="switchDbTab('subs')" class="bg-indigo-900/80 hover:bg-indigo-800 p-2.5 rounded-lg border border-indigo-800 cursor-pointer transition">
+            <div id="statCertsCount" class="text-lg font-extrabold text-sky-400">0</div>
+            <div class="text-[11px] text-indigo-200">🎓 ประวัติผลสอบ (คลิกดู)</div>
+          </div>
+        </div>
+        <div class="flex gap-2 pt-1">
+          <button onclick="forceCloudPushAll()" class="w-1/2 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition shadow">
+            ⬆️ อัปโหลดข้อมูลขึ้นคลาวด์ทันที
+          </button>
+          <button onclick="forceCloudPull()" class="w-1/2 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-bold transition shadow">
+            ⬇️ ดึงข้อมูลล่าสุดจากคลาวด์
+          </button>
+        </div>
+      </div>
+
+      <!-- Built-in Database Table Viewer -->
+      <div class="border border-slate-200 rounded-xl overflow-hidden bg-white">
+        <div class="bg-slate-100 px-4 py-2.5 border-b flex flex-wrap justify-between items-center gap-2">
+          <span class="text-xs font-bold text-slate-700">🔍 ตารางเปิดดูข้อมูลในฐานข้อมูล (Database Viewer)</span>
+          <div class="flex flex-wrap gap-1">
+            <button id="dbTabUsers" onclick="switchDbTab('users')" class="px-2.5 py-1 rounded text-xs font-bold bg-indigo-600 text-white">1. ผู้ใช้งาน</button>
+            <button id="dbTabExams" onclick="switchDbTab('exams')" class="px-2.5 py-1 rounded text-xs font-bold bg-white text-slate-600 border">2. ข้อสอบ</button>
+            <button id="dbTabSubs" onclick="switchDbTab('subs')" class="px-2.5 py-1 rounded text-xs font-bold bg-white text-slate-600 border">3. ประวัติสอบ</button>
+            <button id="dbTabRaw" onclick="switchDbTab('raw')" class="px-2.5 py-1 rounded text-xs font-bold bg-white text-slate-600 border">4. โค้ด JSON ดิบ</button>
+          </div>
+        </div>
+        <div id="dbViewerContent" class="p-3 max-h-60 overflow-y-auto text-xs"></div>
+      </div>
+
+      <!-- Portable Sync File / Code (For Offline or Different Server Hosting) -->
+      <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+        <div class="font-bold text-sm text-slate-800">📦 สำรองหรือย้ายฐานข้อมูลข้ามเซิร์ฟเวอร์ (ไฟล์ JSON)</div>
+        <p class="text-xs text-slate-500">คุณสามารถดาวน์โหลดฐานข้อมูลทั้งหมดเก็บไว้ในคอมพิวเตอร์ หรือนำไปเปิดในเว็บโฮสติ้งอื่นได้ 100%</p>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="exportFullDatabase()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition">
+            💾 ดาวน์โหลดไฟล์ฐานข้อมูล (.json)
+          </button>
+          <label class="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-bold cursor-pointer transition">
+            📂 นำเข้าไฟล์ฐานข้อมูล (.json)
+            <input type="file" accept=".json" onchange="importFullDatabase(event)" class="hidden">
+          </label>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button onclick="closeCloudModal()" class="px-5 py-2 rounded-lg bg-slate-800 text-white text-xs font-bold hover:bg-slate-700">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ================= QR CODE & LINK MODAL ================= -->
   <div id="shareModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4">
@@ -495,20 +639,40 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'certiexam-pro-default';
     let db = null;
     let auth = null;
     let fbUser = null;
 
+    function setCloudBadgeState(statusText, isOnline = true) {
+      const txtEl = document.getElementById('cloudStatusText');
+      const dotEl = document.getElementById('cloudDot');
+      const modalState = document.getElementById('modalCloudState');
+      if (txtEl) txtEl.textContent = statusText;
+      if (dotEl) {
+        dotEl.className = isOnline
+          ? 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse'
+          : 'w-2 h-2 rounded-full bg-amber-400';
+      }
+      if (modalState) {
+        modalState.textContent = isOnline ? `🟢 ${statusText}` : `🟡 ${statusText}`;
+      }
+    }
+
     async function initCloudSync() {
       try {
-        if (typeof __firebase_config === 'undefined' || !__firebase_config) return;
+        if (typeof __firebase_config === 'undefined' || !__firebase_config) {
+          setCloudBadgeState('พร้อมซิงค์ข้อมูล', false);
+          return;
+        }
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         auth = getAuth(app);
         db = getFirestore(app);
+
+        setCloudBadgeState('กำลังเชื่อมต่อคลาวด์...', true);
 
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
           await signInWithCustomToken(auth, __initial_auth_token);
@@ -519,10 +683,12 @@
         onAuthStateChanged(auth, (user) => {
           fbUser = user;
           if (!user) return;
+          setCloudBadgeState('ซิงค์คลาวด์ออนไลน์แล้ว', true);
           setupRealtimeListeners();
         });
       } catch (err) {
         console.error("Cloud sync error:", err);
+        setCloudBadgeState('โหมดสำรองข้อมูล', false);
       }
     }
 
@@ -579,14 +745,18 @@
     window.cloudSaveUser = async (userObj) => {
       if (!fbUser || !db) return;
       try {
+        setCloudBadgeState('กำลังบันทึกบัญชี...', true);
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'ce_users', userObj.username.toLowerCase()), userObj);
+        setCloudBadgeState('ซิงค์คลาวด์ออนไลน์แล้ว', true);
       } catch (e) { console.error(e); }
     };
 
     window.cloudSaveExam = async (examObj) => {
       if (!fbUser || !db) return;
       try {
+        setCloudBadgeState('กำลังบันทึกข้อสอบ...', true);
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'ce_exams', examObj.id), examObj);
+        setCloudBadgeState('ซิงค์คลาวด์ออนไลน์แล้ว', true);
       } catch (e) { console.error(e); }
     };
 
@@ -600,15 +770,83 @@
     window.cloudSaveCertConfig = async (cfgObj) => {
       if (!fbUser || !db) return;
       try {
+        setCloudBadgeState('กำลังบันทึกรูปแบบใบประกาศฯ...', true);
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'ce_settings', 'certConfig'), cfgObj);
+        setCloudBadgeState('ซิงค์คลาวด์ออนไลน์แล้ว', true);
       } catch (e) { console.error(e); }
     };
 
     window.cloudSaveSubmission = async (subObj) => {
       if (!fbUser || !db) return;
       try {
+        setCloudBadgeState('กำลังบันทึกใบประกาศฯ...', true);
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'ce_submissions', subObj.certId), subObj);
+        setCloudBadgeState('ซิงค์คลาวด์ออนไลน์แล้ว', true);
       } catch (e) { console.error(e); }
+    };
+
+    window.forceCloudPushAll = async () => {
+      if (!fbUser || !db) {
+        window.showNotice('บันทึกข้อมูลทั้งหมดเรียบร้อยแล้ว');
+        return;
+      }
+      try {
+        setCloudBadgeState('กำลังอัปโหลดทั้งหมด...', true);
+        for (const u of window.users) {
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'ce_users', u.username.toLowerCase()), u);
+        }
+        for (const ex of window.exams) {
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'ce_exams', ex.id), ex);
+        }
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'ce_settings', 'certConfig'), window.certConfig);
+        for (const sub of window.examSubmissions) {
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'ce_submissions', sub.certId), sub);
+        }
+        setCloudBadgeState('ซิงค์คลาวด์ออนไลน์แล้ว', true);
+        window.showNotice('อัปโหลดฐานข้อมูลทั้งหมดขึ้นระบบคลาวด์เรียบร้อยแล้ว!');
+      } catch (e) {
+        console.error(e);
+        window.showNotice('เกิดข้อผิดพลาดในการอัปโหลดขึ้นคลาวด์', true);
+      }
+    };
+
+    window.forceCloudPull = async () => {
+      if (!fbUser || !db) {
+        window.showNotice('ดึงข้อมูลล่าสุดเรียบร้อยแล้ว');
+        return;
+      }
+      try {
+        setCloudBadgeState('กำลังดึงข้อมูลจากคลาวด์...', true);
+        const uSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'ce_users'));
+        if (!uSnap.empty) {
+          const uList = [];
+          uSnap.forEach(d => uList.push(d.data()));
+          window.syncUsersFromCloud(uList);
+        }
+
+        const eSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'ce_exams'));
+        if (!eSnap.empty) {
+          const eList = [];
+          eSnap.forEach(d => eList.push(d.data()));
+          window.syncExamsFromCloud(eList);
+        }
+
+        const cSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'ce_settings', 'certConfig'));
+        if (cSnap.exists()) {
+          window.syncCertConfigFromCloud(cSnap.data());
+        }
+
+        const sSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'ce_submissions'));
+        const sList = [];
+        sSnap.forEach(d => sList.push(d.data()));
+        window.syncSubmissionsFromCloud(sList);
+
+        setCloudBadgeState('ซิงค์คลาวด์ออนไลน์แล้ว', true);
+        window.showNotice('ดึงข้อมูลล่าสุดจากระบบคลาวด์เรียบร้อยแล้ว!');
+      } catch (e) {
+        console.error(e);
+        window.showNotice('ไม่สามารถดึงข้อมูลจากคลาวด์ได้ในขณะนี้', true);
+      }
     };
 
     initCloudSync();
@@ -627,6 +865,7 @@
         setTimeout(() => item.remove(), 300);
       }, 2800);
     }
+    window.showNotice = showNotice;
 
     // --- Initial Default Data ---
     const defaultCertConfig = {
@@ -796,6 +1035,188 @@
       window.exams = exams;
       window.certConfig = certConfig;
       window.users = users;
+      window.examSubmissions = examSubmissions;
+      updateCloudStatsUI();
+    }
+
+    function updateCloudStatsUI() {
+      const uEl = document.getElementById('statUsersCount');
+      const eEl = document.getElementById('statExamsCount');
+      const cEl = document.getElementById('statCertsCount');
+      if (uEl) uEl.textContent = users.length;
+      if (eEl) eEl.textContent = exams.length;
+      if (cEl) cEl.textContent = examSubmissions.length;
+      renderDbViewer();
+    }
+
+    let currentDbTab = 'users';
+    function switchDbTab(tab) {
+      currentDbTab = tab;
+      const tabs = {
+        users: document.getElementById('dbTabUsers'),
+        exams: document.getElementById('dbTabExams'),
+        subs: document.getElementById('dbTabSubs'),
+        raw: document.getElementById('dbTabRaw')
+      };
+      Object.keys(tabs).forEach(k => {
+        if (!tabs[k]) return;
+        tabs[k].className = (k === tab)
+          ? 'px-2.5 py-1 rounded text-xs font-bold bg-indigo-600 text-white'
+          : 'px-2.5 py-1 rounded text-xs font-bold bg-white text-slate-600 border hover:bg-slate-50';
+      });
+      renderDbViewer();
+    }
+
+    function renderDbViewer() {
+      const box = document.getElementById('dbViewerContent');
+      if (!box) return;
+      const isAdmin = currentUser && currentUser.role === 'admin';
+
+      if (currentDbTab === 'users') {
+        box.innerHTML = `
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b bg-slate-50 text-slate-600">
+                <th class="p-2">Username</th>
+                <th class="p-2">ชื่อ-นามสกุลจริง</th>
+                <th class="p-2">สิทธิ์</th>
+                <th class="p-2">รหัสผ่าน / คำตอบกู้คืน</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${users.map(u => `
+                <tr class="border-b hover:bg-slate-50">
+                  <td class="p-2 font-bold text-indigo-900">${u.username}</td>
+                  <td class="p-2">${u.displayName}</td>
+                  <td class="p-2"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${u.role === 'admin' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'}">${u.role}</span></td>
+                  <td class="p-2 text-slate-500">${isAdmin ? `รหัส: <code>${u.pass}</code> | กู้คืน: <code>${u.secAnswer || '-'}</code>` : '🔒 (เฉพาะ Admin จึงเห็นรหัส)'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      } else if (currentDbTab === 'exams') {
+        box.innerHTML = `
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b bg-slate-50 text-slate-600">
+                <th class="p-2">รหัสชุดข้อสอบ (ID)</th>
+                <th class="p-2">ชื่อวิชา</th>
+                <th class="p-2">จำนวนข้อ</th>
+                <th class="p-2">เกณฑ์ผ่าน</th>
+                <th class="p-2">สถานะ</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${exams.map(ex => `
+                <tr class="border-b hover:bg-slate-50">
+                  <td class="p-2 font-mono text-slate-500">${ex.id}</td>
+                  <td class="p-2 font-bold text-slate-800">${ex.title}</td>
+                  <td class="p-2">${ex.questions.length} ข้อ</td>
+                  <td class="p-2">${ex.passScore}%</td>
+                  <td class="p-2">${ex.published ? '🟢 เปิดสอบ' : '🔒 ซ่อนไว้'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      } else if (currentDbTab === 'subs') {
+        if (examSubmissions.length === 0) {
+          box.innerHTML = `<div class="p-4 text-center text-slate-400">ยังไม่มีข้อมูลประวัติการสอบในฐานข้อมูล</div>`;
+          return;
+        }
+        box.innerHTML = `
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b bg-slate-50 text-slate-600">
+                <th class="p-2">รหัสใบประกาศฯ</th>
+                <th class="p-2">ผู้เข้าสอบ</th>
+                <th class="p-2">วิชา</th>
+                <th class="p-2">คะแนน</th>
+                <th class="p-2">วันที่</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${examSubmissions.map(s => `
+                <tr class="border-b hover:bg-slate-50">
+                  <td class="p-2 font-mono font-bold text-indigo-700">${s.certId}</td>
+                  <td class="p-2">${s.studentName} <span class="text-slate-400">(${s.username})</span></td>
+                  <td class="p-2">${s.examTitle}</td>
+                  <td class="p-2 font-bold ${s.passed ? 'text-emerald-600' : 'text-rose-600'}">${s.percent}% (${s.passed ? 'ผ่าน' : 'ไม่ผ่าน'})</td>
+                  <td class="p-2 text-slate-400">${s.dateStr}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      } else if (currentDbTab === 'raw') {
+        const rawObj = {
+          ce_users: isAdmin ? users : users.map(u => ({ username: u.username, displayName: u.displayName, role: u.role })),
+          ce_exams: exams,
+          ce_settings_certConfig: certConfig,
+          ce_submissions: examSubmissions
+        };
+        box.innerHTML = `<pre class="bg-slate-900 text-emerald-300 p-3 rounded-lg overflow-x-auto text-[11px] leading-relaxed">${JSON.stringify(rawObj, null, 2)}</pre>`;
+      }
+    }
+
+    function openCloudModal() {
+      if (!currentUser || currentUser.role !== 'admin') {
+        showNotice('เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถเข้าถึงข้อมูลเบื้องหลังได้', true);
+        return;
+      }
+      updateCloudStatsUI();
+      const modal = document.getElementById('cloudModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeCloudModal() {
+      const modal = document.getElementById('cloudModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function exportFullDatabase() {
+      const payload = {
+        version: '2.0',
+        exportedAt: new Date().toISOString(),
+        users,
+        exams,
+        certConfig,
+        examSubmissions
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `CertiExam_CloudBackup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showNotice('ดาวน์โหลดไฟล์ฐานข้อมูลครบชุดเรียบร้อยแล้ว');
+    }
+
+    function importFullDatabase(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (Array.isArray(data.users)) users = data.users;
+          if (Array.isArray(data.exams)) exams = data.exams;
+          if (data.certConfig) certConfig = data.certConfig;
+          if (Array.isArray(data.examSubmissions)) examSubmissions = data.examSubmissions;
+
+          saveToStorage();
+          if (window.forceCloudPushAll) await window.forceCloudPushAll();
+          if (currentUser) renderDashboard();
+          showNotice('นำเข้าและซิงค์ฐานข้อมูลขึ้นระบบคลาวด์สำเร็จ!');
+        } catch (err) {
+          showNotice('รูปแบบไฟล์ฐานข้อมูลไม่ถูกต้อง', true);
+        }
+      };
+      reader.readAsText(file);
     }
 
     // --- Initialization ---
@@ -985,10 +1406,13 @@
         badge.textContent = `👑 Admin: ${currentUser.displayName}`;
         document.getElementById('btnAdminCreate').classList.remove('hidden');
         document.getElementById('btnAdminCert').classList.remove('hidden');
+        document.getElementById('btnAdminCloud').classList.remove('hidden');
       } else {
         badge.textContent = `👤 ผู้เข้าสอบ: ${currentUser.displayName}`;
         document.getElementById('btnAdminCreate').classList.add('hidden');
         document.getElementById('btnAdminCert').classList.add('hidden');
+        document.getElementById('btnAdminCloud').classList.add('hidden');
+        closeCloudModal();
       }
 
       // Check if user came via QR Code / Direct Link (?exam=ID)
@@ -1026,6 +1450,12 @@
 
     // --- Navigation ---
     function showView(viewName) {
+      const isAdmin = currentUser && currentUser.role === 'admin';
+      if ((viewName === 'examEditor' || viewName === 'certDesigner') && !isAdmin) {
+        showNotice('คุณไม่มีสิทธิ์เข้าถึงส่วนจัดการของผู้ดูแลระบบ', true);
+        return;
+      }
+
       const views = ['viewLogin', 'viewDashboard', 'viewExamEditor', 'viewCertDesigner', 'viewTakeExam', 'viewResult', 'viewMyCerts'];
       views.forEach(id => document.getElementById(id).classList.add('hidden'));
 
@@ -1040,56 +1470,45 @@
 
     // --- Dashboard Rendering ---
     function renderDashboard() {
-      const grid = document.getElementById('examGrid');
-      grid.innerHTML = '';
-
       const isAdmin = currentUser && currentUser.role === 'admin';
-      const visibleExams = isAdmin ? exams : exams.filter(e => e.published);
+      const adminSection = document.getElementById('adminExamSection');
+      const studentSection = document.getElementById('studentDashboardSections');
 
-      document.getElementById('dashTitle').textContent = isAdmin
-        ? 'จัดการชุดข้อสอบทั้งหมด (โหมดผู้ดูแลระบบ)'
-        : 'รายการข้อสอบที่เปิดให้เข้าทดสอบ';
+      if (isAdmin) {
+        adminSection.classList.remove('hidden');
+        studentSection.classList.add('hidden');
+        document.getElementById('dashTitle').textContent = 'จัดการชุดข้อสอบทั้งหมด (โหมดผู้ดูแลระบบ)';
+        document.getElementById('dashSubtitle').textContent = 'สร้าง แก้ไข ตั้งค่าการมองเห็น และแชร์ QR Code สำหรับผู้เข้าสอบ';
 
-      if (visibleExams.length === 0) {
-        grid.innerHTML = `<div class="col-span-full bg-white p-8 rounded-xl text-center text-slate-500 border">ยังไม่มีข้อสอบที่เปิดให้ใช้งานในขณะนี้</div>`;
-        return;
-      }
+        const grid = document.getElementById('examGrid');
+        grid.innerHTML = '';
 
-      visibleExams.forEach(exam => {
-        const statusBadge = exam.published
-          ? `<span class="text-xs px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-semibold">🟢 เปิดให้สอบ</span>`
-          : `<span class="text-xs px-2.5 py-0.5 bg-slate-200 text-slate-700 rounded-full font-semibold">🔒 ซ่อนไว้ (เฉพาะ Admin)</span>`;
+        if (exams.length === 0) {
+          grid.innerHTML = `<div class="col-span-full bg-white p-8 rounded-xl text-center text-slate-500 border">ยังไม่มีข้อสอบในระบบ</div>`;
+          return;
+        }
 
-        // Check if current user already passed this exam
-        const myPassedRecord = currentUser
-          ? examSubmissions.find(s => s.username === currentUser.username && s.examId === exam.id && s.passed)
-          : null;
+        exams.forEach(exam => {
+          const statusBadge = exam.published
+            ? `<span class="text-xs px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-semibold">🟢 เปิดให้สอบ</span>`
+            : `<span class="text-xs px-2.5 py-0.5 bg-slate-200 text-slate-700 rounded-full font-semibold">🔒 ซ่อนไว้ (เฉพาะ Admin)</span>`;
 
-        const passedBadgeHtml = myPassedRecord
-          ? `<div class="mb-3 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between text-xs text-emerald-800">
-               <span>🏆 สอบผ่านแล้ว (${myPassedRecord.percent}%)</span>
-               <button onclick="viewSavedCertificate('${myPassedRecord.certId}')" class="font-bold underline hover:text-emerald-950">ดูใบประกาศฯ</button>
-             </div>`
-          : '';
-
-        const card = document.createElement('div');
-        card.className = 'bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between hover:shadow-md transition';
-        card.innerHTML = `
-          <div>
-            <div class="flex justify-between items-center gap-2 mb-3">
-              ${statusBadge}
-              <span class="text-xs text-slate-500 font-medium">${exam.questions.length} ข้อ | ผ่าน ${exam.passScore}%</span>
+          const card = document.createElement('div');
+          card.className = 'bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between hover:shadow-md transition';
+          card.innerHTML = `
+            <div>
+              <div class="flex justify-between items-center gap-2 mb-3">
+                ${statusBadge}
+                <span class="text-xs text-slate-500 font-medium">${exam.questions.length} ข้อ | ผ่าน ${exam.passScore}%</span>
+              </div>
+              <h3 class="font-bold text-lg text-slate-800 mb-1">${exam.title}</h3>
+              <p class="text-xs text-slate-500 mb-4 line-clamp-2">${exam.desc || '-'}</p>
             </div>
-            <h3 class="font-bold text-lg text-slate-800 mb-1">${exam.title}</h3>
-            <p class="text-xs text-slate-500 mb-4 line-clamp-2">${exam.desc || '-'}</p>
-            ${passedBadgeHtml}
-          </div>
 
-          <div class="space-y-2 pt-3 border-t">
-            <button onclick="startExam('${exam.id}')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold transition">
-              ✍️ ${myPassedRecord ? 'ทำข้อสอบซ้ำอีกครั้ง' : 'เริ่มทำข้อสอบ'}
-            </button>
-            ${isAdmin ? `
+            <div class="space-y-2 pt-3 border-t">
+              <button onclick="startExam('${exam.id}')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold transition">
+                ✍️ ทดลองทำข้อสอบ
+              </button>
               <div class="grid grid-cols-3 gap-1.5 pt-1">
                 <button onclick="openExamEditor('${exam.id}')" class="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-semibold">✏️ แก้ไข</button>
                 <button onclick="openShareModal('${exam.id}')" class="py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded text-xs font-semibold border border-amber-200">📱 QR/ลิงก์</button>
@@ -1098,11 +1517,103 @@
               <button onclick="togglePublish('${exam.id}')" class="w-full py-1 text-xs font-medium text-indigo-600 hover:underline">
                 ${exam.published ? 'ซ่อนไม่ให้ผู้ใช้ทั่วไปเห็น' : 'เปลี่ยนเป็นเปิดให้ผู้ใช้ทั่วไปเห็น'}
               </button>
-            ` : ''}
-          </div>
-        `;
-        grid.appendChild(card);
-      });
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      } else {
+        // Student View: Show only 1) New Exams, 2) Completed Exams, 3) Earned Certificates
+        adminSection.classList.add('hidden');
+        studentSection.classList.remove('hidden');
+        document.getElementById('dashTitle').textContent = `สวัสดี, ${currentUser.displayName}`;
+        document.getElementById('dashSubtitle').textContent = 'รายการข้อสอบใหม่ ข้อสอบที่ทำไว้ และใบประกาศนียบัตรของคุณ';
+
+        const publishedExams = exams.filter(e => e.published);
+        const mySubs = examSubmissions.filter(s => s.username && s.username.toLowerCase() === currentUser.username.toLowerCase());
+
+        const newExams = publishedExams.filter(ex => !mySubs.some(s => s.examId === ex.id));
+        const doneExams = publishedExams.filter(ex => mySubs.some(s => s.examId === ex.id));
+        const earnedCerts = mySubs.filter(s => s.passed);
+
+        document.getElementById('countNewExams').textContent = `${newExams.length} รายการ`;
+        document.getElementById('countDoneExams').textContent = `${doneExams.length} รายการ`;
+
+        // 1. Render New Exams
+        const newGrid = document.getElementById('studentNewExamsGrid');
+        if (newExams.length === 0) {
+          newGrid.innerHTML = `<div class="col-span-full bg-white p-5 rounded-xl text-center text-slate-400 text-sm border">ไม่มีข้อสอบใหม่ที่ยังไม่ได้ทำในขณะนี้</div>`;
+        } else {
+          newGrid.innerHTML = newExams.map(ex => `
+            <div class="bg-white rounded-xl shadow-sm border border-indigo-100 p-5 flex flex-col justify-between hover:shadow-md transition">
+              <div>
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-xs px-2.5 py-0.5 bg-indigo-100 text-indigo-800 rounded-full font-bold">🆕 ข้อสอบใหม่</span>
+                  <span class="text-xs text-slate-500">เกณฑ์ผ่าน ${ex.passScore}%</span>
+                </div>
+                <h4 class="font-bold text-base text-slate-800">${ex.title}</h4>
+                <p class="text-xs text-slate-500 mt-1 mb-4 line-clamp-2">${ex.desc || ''}</p>
+              </div>
+              <button onclick="startExam('${ex.id}')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold transition shadow-sm">
+                ✍️ เริ่มทำข้อสอบ
+              </button>
+            </div>
+          `).join('');
+        }
+
+        // 2. Render Completed Exams (Topics Only + Score & Retake)
+        const doneGrid = document.getElementById('studentDoneExamsGrid');
+        if (doneExams.length === 0) {
+          doneGrid.innerHTML = `<div class="col-span-full bg-white p-5 rounded-xl text-center text-slate-400 text-sm border">ยังไม่มีข้อสอบที่เคยทำ</div>`;
+        } else {
+          doneGrid.innerHTML = doneExams.map(ex => {
+            const attempts = mySubs.filter(s => s.examId === ex.id);
+            const bestSub = attempts.reduce((best, cur) => (cur.percent > best.percent ? cur : best), attempts[0]);
+            return `
+              <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs px-2.5 py-0.5 rounded-full font-bold ${bestSub.passed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                      ${bestSub.passed ? '✅ ผ่านแล้ว' : '⏳ ยังไม่ผ่านเกณฑ์'}
+                    </span>
+                    <span class="text-xs text-slate-400">คะแนนสูงสุด ${bestSub.percent}%</span>
+                  </div>
+                  <h4 class="font-bold text-base text-slate-800">${ex.title}</h4>
+                  <p class="text-xs text-slate-500 mt-1 mb-4">สอบล่าสุดเมื่อ: ${bestSub.dateStr}</p>
+                </div>
+                <div class="flex gap-2 pt-3 border-t">
+                  <button onclick="startExam('${ex.id}')" class="w-full py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">
+                    🔄 สอบซ้ำอีกครั้ง
+                  </button>
+                  ${bestSub.passed ? `
+                    <button onclick="viewSavedCertificate('${bestSub.certId}')" class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition">
+                      🎓 รับใบประกาศฯ
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        // 3. Render Earned Certificates
+        const certGrid = document.getElementById('studentEarnedCertsGrid');
+        if (earnedCerts.length === 0) {
+          certGrid.innerHTML = `<div class="col-span-full bg-white p-5 rounded-xl text-center text-slate-400 text-sm border">ยังไม่มีใบประกาศนียบัตรที่ได้รับ (เมื่อสอบผ่านเกณฑ์ ใบประกาศฯ จะแสดงที่นี่)</div>`;
+        } else {
+          certGrid.innerHTML = earnedCerts.map(c => `
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-emerald-200 flex items-center justify-between gap-3">
+              <div>
+                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">🏆 ใบประกาศนียบัตร (${c.percent}%)</span>
+                <h4 class="font-bold text-slate-800 text-sm mt-1">${c.examTitle}</h4>
+                <p class="text-xs text-slate-400">วันที่ได้รับ: ${c.dateStr} | รหัส: ${c.certId}</p>
+              </div>
+              <button onclick="viewSavedCertificate('${c.certId}')" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shrink-0 shadow-sm">
+                🎓 เปิดดู / ดาวน์โหลด
+              </button>
+            </div>
+          `).join('');
+        }
+      }
     }
 
     function togglePublish(examId) {
@@ -1520,12 +2031,29 @@
         ? '🎓 ประวัติการสอบและใบประกาศนียบัตรของผู้เข้าสอบทั้งหมด (โหมด Admin)'
         : '🎓 ประวัติการสอบและใบประกาศนียบัตรของฉัน';
 
-      const records = isAdmin
+      const keyword = (document.getElementById('certSearchInput')?.value || '').trim().toLowerCase();
+
+      let records = isAdmin
         ? examSubmissions
         : examSubmissions.filter(s => s.username && s.username.toLowerCase() === currentUser.username.toLowerCase());
 
+      if (keyword) {
+        records = records.filter(r =>
+          (r.examTitle || '').toLowerCase().includes(keyword) ||
+          (r.studentName || '').toLowerCase().includes(keyword) ||
+          (r.username || '').toLowerCase().includes(keyword) ||
+          (r.certId || '').toLowerCase().includes(keyword)
+        );
+      }
+
+      const passedCount = records.filter(r => r.passed).length;
+      const statsEl = document.getElementById('certSummaryStats');
+      if (statsEl) {
+        statsEl.textContent = `พบประวัติทั้งหมด ${records.length} รายการ (สอบผ่านได้รับใบประกาศฯ ${passedCount} ใบ)`;
+      }
+
       if (records.length === 0) {
-        listEl.innerHTML = `<div class="col-span-full bg-white p-8 rounded-xl text-center text-slate-500 border">ยังไม่มีประวัติการทำข้อสอบในระบบ</div>`;
+        listEl.innerHTML = `<div class="col-span-full bg-white p-8 rounded-xl text-center text-slate-500 border">ยังไม่มีประวัติการทำข้อสอบในระบบ หรือไม่พบรายการที่ค้นหา</div>`;
         return;
       }
 
